@@ -2,50 +2,37 @@ import tracemalloc
 import time
 from functools import wraps
 from typing import Callable
+import array
 
 
-def measure_performance(func: Callable) -> Callable:
-    """
-    Декоратор для измерения времени выполнения и использования памяти
-    """
-    @wraps(func)
+def measure_performance(func):
     def wrapper(*args, **kwargs):
-        tracemalloc.clear_traces()
-
         tracemalloc.start()
-
-        start_time = time.time()
-
+        
+        start = time.time()
         result = func(*args, **kwargs)
-
-        end_time = time.time()
-
+        end = time.time()
+        
         current, peak = tracemalloc.get_traced_memory()
         tracemalloc.stop()
-
-        input_size = len(args[0]) if args and hasattr(
-            args[0], '__len__') else 'N/A'
-
-        print(f"\n{'='*60}")
-        print(f"ФУНКЦИЯ: {func.__name__}")
-        print(f"{'='*60}")
-        print(f"📦 Размер входных данных: {input_size} элементов")
-        print(f"⏱️  Время выполнения: {end_time - start_time:.8f} сек")
-        print(f"⏱️  Время выполнения: {(end_time - start_time) * 1000:.3f} мс")
-        print(
-            f"💾 Память (текущая): {current / 1024:.3f} KB ({current / (1024*1024):.6f} MB)")
-        print(
-            f"💾 Память (пик): {peak / 1024:.3f} KB ({peak / (1024*1024):.6f} MB)")
-        print(f"📊 Результат: {result}")
-        print(f"{'='*60}\n")
-
+        
+        size = len(args[0]) if args and hasattr(args[0], '__len__') else 0
+        
+        print(f"Функция: {func.__name__}")
+        print(f"Размер данных: {size}")
+        print(f"Время: {(end - start) * 1000:.2f} мс")
+        print(f"Память: {current / 1024:.2f} KB (пик: {peak / 1024:.2f} KB)")
+        print(f"Результат: {result}")
+        print("-" * 40)
+        
         return result
-
+    
     return wrapper
 
 
-def len_massive(lst: list) -> int:
+@measure_performance
+def len_massive(arr: array.array) -> int:
     i = 0
-    for _ in lst:
+    for _ in arr:
         i += 1
     return i
